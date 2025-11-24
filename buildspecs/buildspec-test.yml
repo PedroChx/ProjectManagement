@@ -1,0 +1,36 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+    commands:
+      - pip install pytest pytest-cov moto
+      
+  pre_build:
+    commands:
+      - echo "Running unit tests..."
+      
+  build:
+    commands:
+      - |
+        for lambda_dir in src/lambda/*/; do
+          echo "Testing $(basename $lambda_dir)..."
+          cd $lambda_dir
+          if [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt
+          fi
+          cd ../../..
+        done
+      
+      - pytest tests/unit/ --cov=src --cov-report=xml
+      
+  post_build:
+    commands:
+      - echo "Tests completed"
+
+reports:
+  pytest-reports:
+    files:
+      - coverage.xml
+    file-format: COBERTURAXML

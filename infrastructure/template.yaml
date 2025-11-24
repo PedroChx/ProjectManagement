@@ -1,0 +1,314 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Sistema de Gestión de Proyectos - Funciones Lambda Individuales
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+  
+  JWTSecret:
+    Type: String
+    Default: change-this-secret-in-production-2024
+    NoEcho: true
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: python3.11
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref ProjectManagementTable
+        JWT_SECRET: !Ref JWTSecret
+        ENVIRONMENT: !Ref Environment
+    Tracing: Active
+  
+  Api:
+    Cors:
+      AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+      AllowHeaders: "'Content-Type,Authorization'"
+      AllowOrigin: "'*'"
+
+Resources:
+  # ==================== DYNAMODB TABLE ====================
+  ProjectManagementTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'ProjectManagement-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+        - AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: EmailIndex
+          KeySchema:
+            - AttributeName: email
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+
+  # ==================== API GATEWAY ====================
+  ProjectManagementAPI:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub 'ProjectManagement-API-${Environment}'
+      StageName: !Ref Environment
+
+
+  # Registrar nuevo usuario
+  authregisterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'auth-register-${Environment}'
+      CodeUri: src/lambda/auth-register/
+      Handler: app.lambda_handler
+      Description: Registrar nuevo usuario
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProjectManagementTable
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProjectManagementAPI
+            Path: /auth/register
+            Method: POST
+
+  # Iniciar sesión
+  authloginFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'auth-login-${Environment}'
+      CodeUri: src/lambda/auth-login/
+      Handler: app.lambda_handler
+      Description: Iniciar sesión
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProjectManagementTable
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProjectManagementAPI
+            Path: /auth/login
+            Method: POST
+
+  # Obtener perfil del usuario autenticado
+  authprofileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'auth-profile-${Environment}'
+      CodeUri: src/lambda/auth-profile/
+      Handler: app.lambda_handler
+      Description: Obtener perfil del usuario autenticado
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProjectManagementTable
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProjectManagementAPI
+            Path: /auth/me
+            Method: GET
+
+  # Listar todos los proyectos del usuario
+  projectslistFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'projects-list-${Environment}'
+      CodeUri: src/lambda/projects-list/
+      Handler: app.lambda_handler
+      Description: Listar todos los proyectos del usuario
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProjectManagementTable
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProjectManagementAPI
+            Path: /projects
+            Method: GET
+
+  # Crear nuevo proyecto
+  projectscreateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'projects-create-${Environment}'
+      CodeUri: src/lambda/projects-create/
+      Handler: app.lambda_handler
+      Description: Crear nuevo proyecto
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProjectManagementTable
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProjectManagementAPI
+            Path: /projects
+            Method: POST
+
+  # Obtener detalles de un proyecto
+  projectsgetFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'projects-get-${Environment}'
+      CodeUri: src/lambda/projects-get/
+      Handler: app.lambda_handler
+      Description: Obtener detalles de un proyecto
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProjectManagementTable
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProjectManagementAPI
+            Path: /projects/{id}
+            Method: GET
+
+  # Actualizar proyecto
+  projectsupdateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'projects-update-${Environment}'
+      CodeUri: src/lambda/projects-update/
+      Handler: app.lambda_handler
+      Description: Actualizar proyecto
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProjectManagementTable
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProjectManagementAPI
+            Path: /projects/{id}
+            Method: PUT
+
+  # Eliminar proyecto
+  projectsdeleteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'projects-delete-${Environment}'
+      CodeUri: src/lambda/projects-delete/
+      Handler: app.lambda_handler
+      Description: Eliminar proyecto
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProjectManagementTable
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProjectManagementAPI
+            Path: /projects/{id}
+            Method: DELETE
+
+  # Listar tareas de un proyecto
+  taskslistFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'tasks-list-${Environment}'
+      CodeUri: src/lambda/tasks-list/
+      Handler: app.lambda_handler
+      Description: Listar tareas de un proyecto
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProjectManagementTable
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProjectManagementAPI
+            Path: /projects/{id}/tasks
+            Method: GET
+
+  # Crear nueva tarea
+  taskscreateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'tasks-create-${Environment}'
+      CodeUri: src/lambda/tasks-create/
+      Handler: app.lambda_handler
+      Description: Crear nueva tarea
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProjectManagementTable
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProjectManagementAPI
+            Path: /projects/{id}/tasks
+            Method: POST
+
+  # Actualizar tarea
+  tasksupdateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'tasks-update-${Environment}'
+      CodeUri: src/lambda/tasks-update/
+      Handler: app.lambda_handler
+      Description: Actualizar tarea
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProjectManagementTable
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProjectManagementAPI
+            Path: /projects/{id}/tasks/{taskId}
+            Method: PUT
+
+  # Eliminar tarea
+  tasksdeleteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'tasks-delete-${Environment}'
+      CodeUri: src/lambda/tasks-delete/
+      Handler: app.lambda_handler
+      Description: Eliminar tarea
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProjectManagementTable
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ProjectManagementAPI
+            Path: /projects/{id}/tasks/{taskId}
+            Method: DELETE
+
+# ==================== OUTPUTS ====================
+Outputs:
+  ApiEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub 'https://${ProjectManagementAPI}.execute-api.${AWS::Region}.amazonaws.com/${Environment}'
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiEndpoint'
+  
+  TableName:
+    Description: DynamoDB table name
+    Value: !Ref ProjectManagementTable
+    Export:
+      Name: !Sub '${AWS::StackName}-TableName'

@@ -3,7 +3,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      python: 3.9
+      python: 3.11
       nodejs: 18
     commands:
       - echo "Installing AWS SAM CLI..."
@@ -13,14 +13,12 @@ phases:
   pre_build:
     commands:
       - echo "Validating SAM template..."
-      - sam validate --template template.yaml
-      - echo "Template validation successful!"
+      - sam validate --template infrastructure/template.yaml
       
   build:
     commands:
-      - echo "Building SAM application..."
-      - sam build --template template.yaml
-      - echo "Build completed successfully!"
+      - echo "Building all Lambda functions..."
+      - sam build --template infrastructure/template.yaml
       
       # Build frontend
       - echo "Building frontend..."
@@ -37,11 +35,9 @@ phases:
           --template-file .aws-sam/build/template.yaml \
           --s3-bucket $BUILD_BUCKET \
           --output-template-file packaged.yaml
-      - echo "Application packaged successfully!"
 
 artifacts:
   files:
     - packaged.yaml
-    - template.yaml
+    - infrastructure/**/*
     - frontend/dist/**/*
-  name: build-artifacts
