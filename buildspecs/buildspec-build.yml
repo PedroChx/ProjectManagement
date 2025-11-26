@@ -18,7 +18,7 @@ phases:
   build:
     commands:
       - echo "Building Backend (SAM)..."
-      - sam build --template infrastructure/template.yaml
+      - sam build --template infrastructure/template.yaml --base-dir .
       
       - echo "Building Frontend (React)..."
       - cd frontend
