@@ -17,11 +17,10 @@ phases:
       
   build:
     commands:
-      - echo "Building all Lambda functions..."
+      - echo "Building Backend (SAM)..."
       - sam build --template infrastructure/template.yaml
       
-      # Build frontend
-      - echo "Building frontend..."
+      - echo "Building Frontend (React)..."
       - cd frontend
       - npm install
       - npm run build
@@ -29,15 +28,18 @@ phases:
       
   post_build:
     commands:
-      - echo "Packaging application..."
-      - |
-        sam package \
-          --template-file .aws-sam/build/template.yaml \
-          --s3-bucket $BUILD_BUCKET \
-          --output-template-file packaged.yaml
+      - echo "Packaging Backend..."
+      # Usamos la variable de entorno BUILD_BUCKET que ya configuraste
+      - sam package --template-file .aws-sam/build/template.yaml --s3-bucket $BUILD_BUCKET --output-template-file packaged.yaml
 
 artifacts:
-  files:
-    - packaged.yaml
-    - infrastructure/**/*
-    - frontend/dist/**/*
+  secondary-artifacts:
+    # Artefacto 1: Solo lo necesario para el Backend (CloudFormation)
+    BuildArtifact:
+      files:
+        - packaged.yaml
+    # Artefacto 2: Solo los archivos finales del sitio web (para subir al bucket S3)
+    FrontendArtifact:
+      base-directory: frontend/dist
+      files:
+        - '**/*'
