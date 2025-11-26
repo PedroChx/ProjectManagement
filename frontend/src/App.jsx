@@ -3,19 +3,24 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import ProjectDetails from './pages/ProjectDetails'; // <--- Importar la nueva página
 import './index.css';
 
-// Protected Route Component
+// Componente de Ruta Protegida
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-400">Cargando...</p>
-        </div>
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#030712',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#9ca3af'
+      }}>
+        Cargando...
       </div>
     );
   }
@@ -23,7 +28,7 @@ function ProtectedRoute({ children }) {
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 }
 
-// Public Route Component (redirect if authenticated)
+// Componente de Ruta Pública (redirige al dashboard si ya estás logueado)
 function PublicRoute({ children }) {
   const { isAuthenticated } = useAuth();
   return !isAuthenticated ? children : <Navigate to="/dashboard" replace />;
@@ -34,38 +39,26 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Public routes */}
-          <Route
-            path="/login"
-            element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <PublicRoute>
-                <Register />
-              </PublicRoute>
-            }
-          />
+          {/* Rutas Públicas */}
+          <Route path="/login" element={
+            <PublicRoute><Login /></PublicRoute>
+          } />
+          <Route path="/register" element={
+            <PublicRoute><Register /></PublicRoute>
+          } />
 
-          {/* Protected routes */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+          {/* Rutas Protegidas */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute><Dashboard /></ProtectedRoute>
+          } />
 
-          {/* Default redirect */}
+          {/* NUEVA RUTA PARA DETALLES DEL PROYECTO */}
+          <Route path="/projects/:id" element={
+            <ProtectedRoute><ProjectDetails /></ProtectedRoute>
+          } />
+
+          {/* Redirecciones */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-
-          {/* 404 */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </AuthProvider>

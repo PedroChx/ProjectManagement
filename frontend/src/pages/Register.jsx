@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { UserPlus, AlertCircle } from 'lucide-react';
+import { UserPlus, AlertCircle, Folder } from 'lucide-react';
 
 export default function Register() {
     const navigate = useNavigate();
@@ -45,7 +45,6 @@ export default function Register() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         if (!validateForm()) return;
 
         setLoading(true);
@@ -59,115 +58,229 @@ export default function Register() {
         } else {
             setError(result.error);
         }
-
         setLoading(false);
     };
 
     return (
-        <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
-            <div className="w-full max-w-md">
-                {/* Logo */}
-                <div className="text-center mb-8">
-                    <div className="w-12 h-12 bg-purple-600 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                        <UserPlus className="w-6 h-6 text-white" />
+        <div style={styles.container}>
+            <div style={styles.content}>
+                {/* Header Logo */}
+                <div style={styles.header}>
+                    <div style={styles.logoBox}>
+                        <UserPlus size={32} color="white" />
                     </div>
-                    <h1 className="text-2xl font-bold text-white mb-2">ProjectHub</h1>
-                    <p className="text-gray-400">Gestión de Proyectos</p>
+                    <h1 style={styles.title}>ProjectHub</h1>
+                    <p style={styles.subtitle}>Gestión de Proyectos</p>
                 </div>
 
                 {/* Card */}
-                <div className="bg-gray-900 border border-gray-800 rounded-lg p-8">
-                    <h2 className="text-xl font-bold text-white mb-6">Crear Cuenta</h2>
+                <div style={styles.card}>
+                    <h2 style={styles.cardTitle}>Crear Cuenta</h2>
 
-                    {/* Error */}
                     {error && (
-                        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg flex items-center gap-3">
-                            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-                            <p className="text-red-400 text-sm">{error}</p>
+                        <div style={styles.errorContainer}>
+                            <AlertCircle size={20} color="#ef4444" />
+                            <p style={styles.errorText}>{error}</p>
                         </div>
                     )}
 
-                    {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Nombre Completo
-                            </label>
+                    <form onSubmit={handleSubmit} style={styles.form}>
+                        <div style={styles.formGroup}>
+                            <label style={styles.label}>Nombre Completo</label>
                             <input
                                 type="text"
                                 name="name"
                                 value={formData.name}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent outline-none text-white"
-                                placeholder="Pedro López"
+                                style={styles.input}
+                                placeholder="Ej: Pedro López"
                             />
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Email
-                            </label>
+                        <div style={styles.formGroup}>
+                            <label style={styles.label}>Email</label>
                             <input
                                 type="email"
                                 name="email"
                                 value={formData.email}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent outline-none text-white"
-                                placeholder="pedro@uaq.mx"
+                                style={styles.input}
+                                placeholder="tu@email.com"
                             />
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Contraseña
-                            </label>
+                        <div style={styles.formGroup}>
+                            <label style={styles.label}>Contraseña</label>
                             <input
                                 type="password"
                                 name="password"
                                 value={formData.password}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent outline-none text-white"
-                                placeholder="••••••••"
+                                style={styles.input}
+                                placeholder="Mínimo 6 caracteres"
                             />
-                            <p className="text-xs text-gray-500 mt-1">Mínimo 6 caracteres</p>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Confirmar Contraseña
-                            </label>
+                        <div style={styles.formGroup}>
+                            <label style={styles.label}>Confirmar Contraseña</label>
                             <input
                                 type="password"
                                 name="confirmPassword"
                                 value={formData.confirmPassword}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent outline-none text-white"
-                                placeholder="••••••••"
+                                style={styles.input}
+                                placeholder="Repite la contraseña"
                             />
                         </div>
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+                            style={{
+                                ...styles.button,
+                                opacity: loading ? 0.7 : 1,
+                                cursor: loading ? 'not-allowed' : 'pointer'
+                            }}
                         >
                             {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
                         </button>
                     </form>
 
-                    {/* Login link */}
-                    <div className="mt-6 text-center text-sm text-gray-400">
-                        ¿Ya tienes cuenta?{' '}
-                        <Link to="/login" className="text-purple-400 hover:text-purple-300 font-semibold">
-                            Iniciar sesión
-                        </Link>
+                    <div style={styles.footer}>
+                        <p style={styles.footerText}>
+                            ¿Ya tienes cuenta?{' '}
+                            <Link to="/login" style={styles.link}>
+                                Iniciar sesión
+                            </Link>
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
     );
 }
+
+const styles = {
+    container: {
+        minHeight: '100vh',
+        backgroundColor: '#030712',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+    },
+    content: {
+        width: '100%',
+        maxWidth: '450px',
+    },
+    header: {
+        textAlign: 'center',
+        marginBottom: '32px',
+    },
+    logoBox: {
+        width: '64px',
+        height: '64px',
+        backgroundColor: '#8b5cf6',
+        borderRadius: '12px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        margin: '0 auto 16px',
+    },
+    title: {
+        fontSize: '28px',
+        fontWeight: 'bold',
+        color: '#fff',
+        margin: '0 0 8px 0',
+    },
+    subtitle: {
+        color: '#9ca3af',
+        margin: 0,
+        fontSize: '14px',
+    },
+    card: {
+        backgroundColor: '#111827',
+        border: '1px solid #1f2937',
+        borderRadius: '12px',
+        padding: '32px',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+    },
+    cardTitle: {
+        color: '#fff',
+        fontSize: '24px',
+        fontWeight: 'bold',
+        marginBottom: '24px',
+        margin: '0 0 24px 0',
+    },
+    errorContainer: {
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        border: '1px solid rgba(239, 68, 68, 0.2)',
+        borderRadius: '8px',
+        padding: '12px',
+        marginBottom: '24px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+    },
+    errorText: {
+        color: '#f87171',
+        fontSize: '14px',
+        margin: 0,
+    },
+    form: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+    },
+    formGroup: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+    },
+    label: {
+        color: '#d1d5db',
+        fontSize: '14px',
+        fontWeight: '500',
+    },
+    input: {
+        backgroundColor: '#1f2937',
+        border: '1px solid #374151',
+        borderRadius: '8px',
+        padding: '12px 16px',
+        color: '#fff',
+        fontSize: '14px',
+        outline: 'none',
+        transition: 'border-color 0.2s',
+    },
+    button: {
+        backgroundColor: '#8b5cf6',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '8px',
+        padding: '12px',
+        fontSize: '16px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        marginTop: '8px',
+        transition: 'background-color 0.2s',
+    },
+    footer: {
+        marginTop: '24px',
+        textAlign: 'center',
+    },
+    footerText: {
+        color: '#9ca3af',
+        fontSize: '14px',
+        margin: 0,
+    },
+    link: {
+        color: '#a78bfa',
+        textDecoration: 'none',
+        fontWeight: '600',
+    }
+};

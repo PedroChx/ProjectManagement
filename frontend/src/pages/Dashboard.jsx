@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { projectService, authService } from '../services/api';
-import { Plus, LogOut, Folder, CheckCircle2, Clock, Users, Calendar, Target } from 'lucide-react';
+import {
+    Plus, LogOut, Folder, CheckCircle2, Clock,
+    Users, Calendar, Target, ArrowRight
+} from 'lucide-react';
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -81,7 +84,7 @@ export default function Dashboard() {
                             <p style={styles.userName}>{user?.name}</p>
                             <p style={styles.userEmail}>{user?.email}</p>
                         </div>
-                        <button onClick={logout} style={styles.logoutBtn}>
+                        <button onClick={logout} style={styles.logoutBtn} title="Cerrar sesión">
                             <LogOut size={20} />
                         </button>
                     </div>
@@ -153,6 +156,7 @@ export default function Dashboard() {
                                 key={project.projectId}
                                 onClick={() => navigate(`/projects/${project.projectId}`)}
                                 style={styles.projectCard}
+                                className="project-card-hover" // Para efectos hover si decides usar una clase CSS global
                             >
                                 <div style={styles.projectHeader}>
                                     <div style={styles.projectIcon}>
@@ -187,11 +191,17 @@ export default function Dashboard() {
                                 <div style={styles.projectFooter}>
                                     <span style={{
                                         ...styles.projectRole,
-                                        backgroundColor: project.userRole === 'owner' ? '#8b5cf6' : '#374151',
-                                        color: project.userRole === 'owner' ? '#e9d5ff' : '#9ca3af'
+                                        backgroundColor: project.userRole === 'owner' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(55, 65, 81, 0.5)',
+                                        color: project.userRole === 'owner' ? '#a78bfa' : '#9ca3af',
+                                        border: project.userRole === 'owner' ? '1px solid rgba(139, 92, 246, 0.2)' : '1px solid rgba(55, 65, 81, 0.5)'
                                     }}>
                                         {project.userRole === 'owner' ? 'Owner' : 'Miembro'}
                                     </span>
+
+                                    {/* Nuevo Indicador de Acción */}
+                                    <div style={styles.viewLink}>
+                                        Ver detalles <ArrowRight size={14} />
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -253,6 +263,7 @@ const styles = {
         minHeight: '100vh',
         backgroundColor: '#030712',
         color: '#fff',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
     },
     loadingContainer: {
         minHeight: '100vh',
@@ -338,7 +349,7 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        transition: 'background-color 0.2s',
+        transition: 'all 0.2s',
     },
     main: {
         maxWidth: '1200px',
@@ -366,8 +377,9 @@ const styles = {
     statCard: {
         backgroundColor: '#111827',
         border: '1px solid #1f2937',
-        borderRadius: '8px',
+        borderRadius: '12px',
         padding: '24px',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
     },
     statNumber: {
         fontSize: '32px',
@@ -407,13 +419,17 @@ const styles = {
         fontWeight: '600',
         cursor: 'pointer',
         transition: 'background-color 0.2s',
+        fontSize: '14px',
     },
     emptyState: {
         backgroundColor: '#111827',
         border: '1px solid #1f2937',
-        borderRadius: '8px',
+        borderRadius: '12px',
         padding: '80px 24px',
         textAlign: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
     },
     emptyTitle: {
         fontSize: '18px',
@@ -439,16 +455,25 @@ const styles = {
     },
     projectsGrid: {
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-        gap: '16px',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+        gap: '20px',
     },
     projectCard: {
         backgroundColor: '#111827',
         border: '1px solid #1f2937',
-        borderRadius: '8px',
+        borderRadius: '12px',
         padding: '24px',
         cursor: 'pointer',
-        transition: 'border-color 0.2s',
+        transition: 'all 0.2s ease',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
+        overflow: 'hidden',
+        /* Simulando hover en JS/CSS inline es difícil, idealmente usar clases */
+        ':hover': {
+            borderColor: '#374151',
+            transform: 'translateY(-2px)',
+        }
     },
     projectHeader: {
         display: 'flex',
@@ -459,54 +484,69 @@ const styles = {
     projectIcon: {
         width: '40px',
         height: '40px',
-        backgroundColor: '#8b5cf6',
-        borderRadius: '8px',
+        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+        borderRadius: '10px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        color: '#8b5cf6'
     },
     projectStatus: {
         width: '8px',
         height: '8px',
         borderRadius: '50%',
+        boxShadow: '0 0 8px currentColor',
     },
     projectName: {
-        fontSize: '16px',
+        fontSize: '18px',
         fontWeight: '600',
         margin: '0 0 8px 0',
+        color: '#fff',
     },
     projectDescription: {
         fontSize: '14px',
         color: '#9ca3af',
-        marginBottom: '16px',
+        marginBottom: '20px',
+        lineHeight: '1.5',
         display: '-webkit-box',
         WebkitLineClamp: 2,
         WebkitBoxOrient: 'vertical',
         overflow: 'hidden',
+        height: '42px', // Altura fija para 2 líneas
     },
     projectMeta: {
         display: 'flex',
         gap: '16px',
-        marginBottom: '16px',
-        paddingBottom: '16px',
+        marginBottom: '20px',
+        paddingBottom: '20px',
         borderBottom: '1px solid #1f2937',
     },
     metaItem: {
         display: 'flex',
         alignItems: 'center',
-        gap: '4px',
-        fontSize: '12px',
+        gap: '6px',
+        fontSize: '13px',
         color: '#9ca3af',
     },
     projectFooter: {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
+        marginTop: 'auto',
     },
     projectRole: {
         fontSize: '12px',
-        padding: '4px 12px',
-        borderRadius: '4px',
+        padding: '4px 10px',
+        borderRadius: '6px',
+        fontWeight: '500',
+    },
+    viewLink: {
+        fontSize: '13px',
+        color: '#8b5cf6',
+        fontWeight: '500',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
     },
     modalOverlay: {
         position: 'fixed',
@@ -514,7 +554,8 @@ const styles = {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: 'rgba(0, 0, 0, 0.75)',
+        backdropFilter: 'blur(4px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -524,20 +565,22 @@ const styles = {
     modal: {
         backgroundColor: '#111827',
         border: '1px solid #1f2937',
-        borderRadius: '8px',
+        borderRadius: '12px',
         padding: '24px',
         maxWidth: '500px',
         width: '100%',
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
     },
     modalTitle: {
         fontSize: '20px',
         fontWeight: 'bold',
         marginBottom: '24px',
+        margin: '0 0 24px 0',
     },
     form: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px',
+        gap: '20px',
     },
     formGroup: {
         display: 'flex',
@@ -550,16 +593,17 @@ const styles = {
         color: '#d1d5db',
     },
     input: {
-        padding: '10px 12px',
+        padding: '12px',
         backgroundColor: '#1f2937',
         border: '1px solid #374151',
         borderRadius: '8px',
         color: 'white',
         fontSize: '14px',
         outline: 'none',
+        transition: 'border-color 0.2s',
     },
     textarea: {
-        padding: '10px 12px',
+        padding: '12px',
         backgroundColor: '#1f2937',
         border: '1px solid #374151',
         borderRadius: '8px',
@@ -568,6 +612,7 @@ const styles = {
         outline: 'none',
         resize: 'vertical',
         fontFamily: 'inherit',
+        minHeight: '100px',
     },
     modalButtons: {
         display: 'flex',
@@ -576,22 +621,24 @@ const styles = {
     },
     cancelBtn: {
         flex: 1,
-        padding: '10px',
+        padding: '12px',
         backgroundColor: '#1f2937',
-        border: 'none',
+        border: '1px solid #374151',
         borderRadius: '8px',
-        color: 'white',
+        color: '#e5e7eb',
         fontWeight: '600',
         cursor: 'pointer',
+        fontSize: '14px',
     },
     submitBtn: {
         flex: 1,
-        padding: '10px',
+        padding: '12px',
         backgroundColor: '#8b5cf6',
         border: 'none',
         borderRadius: '8px',
         color: 'white',
         fontWeight: '600',
         cursor: 'pointer',
+        fontSize: '14px',
     },
 };
